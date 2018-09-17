@@ -258,25 +258,27 @@ class ApiTester extends Extension
             list($class, $method) = explode('@', $action);
         }
 
-        $classReflector = new \ReflectionClass($class);
+        if ( method_exists($class, $method) ) {
+            $classReflector = new \ReflectionClass($class);
 
-        $comment = $classReflector->getMethod($method)->getDocComment();
+            $comment = $classReflector->getMethod($method)->getDocComment();
 
-        if ($comment) {
-            $parameters = [];
-            preg_match_all('/\@SWG\\\Parameter\(\n(.*?)\)\n/s', $comment, $matches);
-            foreach (array_get($matches, 1, []) as $item) {
-                preg_match_all('/(\w+)=[\'"]?([^\r\n"]+)[\'"]?,?\n/s', $item, $match);
-                if (count($match) == 3) {
-                    $match[2] = array_map(function ($val) {
-                        return trim($val, ',');
-                    }, $match[2]);
+            if ($comment) {
+                $parameters = [];
+                preg_match_all('/\@SWG\\\Parameter\(\n(.*?)\)\n/s', $comment, $matches);
+                foreach (array_get($matches, 1, []) as $item) {
+                    preg_match_all('/(\w+)=[\'"]?([^\r\n"]+)[\'"]?,?\n/s', $item, $match);
+                    if (count($match) == 3) {
+                        $match[2] = array_map(function ($val) {
+                            return trim($val, ',');
+                        }, $match[2]);
 
-                    $parameters[] = array_combine($match[1], $match[2]);
+                        $parameters[] = array_combine($match[1], $match[2]);
+                    }
                 }
-            }
 
-            return $parameters;
+                return $parameters;
+            }
         }
 
         return [];
